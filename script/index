@@ -1,0 +1,57 @@
+#!/usr/bin/env osascript -l JavaScript
+
+var app = Application.currentApplication()
+app.includeStandardAdditions = true
+
+function run(argv) {
+  var selectedFiles = null
+
+  welcome()
+  selectedFiles = chooseFonts()
+  patch(selectedFiles)
+}
+
+function displayAlert(defaults, text, informationalText) {
+  var options = Object.create(defaults)
+  if (informationalText) options.message = informationalText
+  app.displayAlert(text, options)
+}
+var alert = displayAlert.bind(null, { })
+var error = displayAlert.bind(null, { as: 'critical' }, 'Error!')
+
+function welcome() {
+  alert('Welcome!', 'Use this tool to patch your system fonts!')
+}
+
+function chooseFonts() {
+  return selectedFiles = app.chooseFile({
+    withPrompt: 'Please choose font files you want to patch/convert.(multiple options allowed but not recommended)',
+    ofType: ['public.font'],
+    multipleSelectionsAllowed: true
+  })
+}
+
+function patch(fonts) {
+  fonts.forEach(function(font) {
+    var fontString = font.toString()
+    try {
+      app.doShellScript('$(dirname $0)/patchUtil "' + fontString + '"')
+      alert('Converted!', 'Move the patched font to /Library/Fonts to replace as the system default font')
+    } catch (e) {
+      error('Unable to convert those fonts')
+    }
+  })
+}
+
+function getFonts(file) {
+  return app.doShellScript('bin/list-fonts ' + quote(file))
+    .trim()
+    .split(/\r\n|\r|\n/)
+    .map(function(line) {
+      return line.replace(/^\s*- /, '')
+  })
+}
+
+function quit() {
+  alert('Thanks!', 'Good Bye!');
+}

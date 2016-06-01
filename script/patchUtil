@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+
+echo "start patching"
+echo
+
+CWD=$(dirname $0)/..
+cd $CWD
+
+TEMPLATES=(/System/Library/Fonts/SFNS*)
+REPLACEMENT="$1"
+
+OUT_DIR=${REPLACEMENT##*/}
+mkdir -p "$OUT_DIR"
+cd "$OUT_DIR"
+for TEMPLATE in $TEMPLATES
+do
+  ../script/patch $TEMPLATE "$REPLACEMENT" 2>&1 && echo "Converted"
+done
+cd ..
+
+echo 
+echo "EOF"
